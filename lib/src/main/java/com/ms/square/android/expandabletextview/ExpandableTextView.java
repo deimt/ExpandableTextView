@@ -35,7 +35,9 @@ import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -55,7 +57,11 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
 
     protected TextView mTv;
 
-    protected ImageButton mButton; // Button to expand/collapse
+    protected Button mButton;
+
+    // Button to expand/collapse
+    protected ImageView mIcon;
+
 
     private boolean mRelayout;
 
@@ -69,9 +75,13 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
 
     private int mMarginBetweenTxtAndBottom;
 
-    private Drawable mExpandDrawable;
+    public Drawable mExpandDrawable;
 
-    private Drawable mCollapseDrawable;
+    public Drawable mCollapseDrawable;
+
+    public String mExpandText;
+
+    public String mCollapseText;
 
     private int mAnimationDuration;
 
@@ -111,12 +121,13 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
 
     @Override
     public void onClick(View view) {
-        if (mButton.getVisibility() != View.VISIBLE) {
+        if (mButton.getVisibility() != View.VISIBLE || mIcon.getVisibility() != View.VISIBLE) {
             return;
         }
 
         mCollapsed = !mCollapsed;
-        mButton.setImageDrawable(mCollapsed ? mExpandDrawable : mCollapseDrawable);
+        mIcon.setImageDrawable(mCollapsed ? mExpandDrawable : mCollapseDrawable);
+        mButton.setText(mCollapsed ? mExpandText : mCollapseText);
 
         if (mCollapsedStatus != null) {
             mCollapsedStatus.put(mPosition, mCollapsed);
@@ -183,6 +194,7 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         // Setup with optimistic case
         // i.e. Everything fits. No button needed
         mButton.setVisibility(View.GONE);
+        mIcon.setVisibility(View.GONE);
         mTv.setMaxLines(Integer.MAX_VALUE);
 
         // Measure
@@ -202,6 +214,8 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
             mTv.setMaxLines(mMaxCollapsedLines);
         }
         mButton.setVisibility(View.VISIBLE);
+        mIcon.setVisibility(View.VISIBLE);
+
 
         // Re-measure with new setup
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -229,13 +243,21 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         setVisibility(TextUtils.isEmpty(text) ? View.GONE : View.VISIBLE);
     }
 
+    public  void  setButtonTitles (String expandText, String collapseText){
+        mRelayout = true;
+        mExpandText = expandText;
+        mCollapseText = collapseText;
+        mButton.setText(mCollapsed ? mExpandText : mCollapseText);
+    }
+
     public void setText(@Nullable CharSequence text, @NonNull SparseBooleanArray collapsedStatus, int position) {
         mCollapsedStatus = collapsedStatus;
         mPosition = position;
         boolean isCollapsed = collapsedStatus.get(position, true);
         clearAnimation();
         mCollapsed = isCollapsed;
-        mButton.setImageDrawable(mCollapsed ? mExpandDrawable : mCollapseDrawable);
+        mIcon.setImageDrawable(mCollapsed ? mExpandDrawable : mCollapseDrawable);
+        mButton.setText(mCollapsed ? mExpandText : mCollapseText);
         setText(text);
         getLayoutParams().height = ViewGroup.LayoutParams.WRAP_CONTENT;
         requestLayout();
@@ -276,8 +298,10 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
     private void findViews() {
         mTv = (TextView) findViewById(R.id.expandable_text);
         mTv.setOnClickListener(this);
-        mButton = (ImageButton) findViewById(R.id.expand_collapse);
-        mButton.setImageDrawable(mCollapsed ? mExpandDrawable : mCollapseDrawable);
+        mButton = (Button) findViewById(R.id.expand_collapse);
+        mIcon = (ImageView) findViewById(R.id.expand_icon);
+        mIcon.setImageDrawable(mCollapsed ? mExpandDrawable : mCollapseDrawable);
+        mButton.setText(mCollapsed ? mExpandText : mCollapseText);
         mButton.setOnClickListener(this);
     }
 
